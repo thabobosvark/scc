@@ -615,13 +615,74 @@ The [TOP500 list](https://top500.org/lists/top500/2024/06/) is a project that ra
 
 # Spinning Up a Second Compute Node Using a Snapshot
 
-At this point you are ready to run HPL on your cluster with two compute nodes. From your OpenStack workspace, navigate to `Compute` &rarr; `Instances` and create a snapshot from your compute node.
+This section guides you through creating a second compute node (`com2`) from a snapshot of your first compute node (`com1`). This ensures identical configurations and pre-installed software across nodes without the need for manual reconfiguration.
 
-Launch a new instance, as you did in [Tutorial 1](../tutorial1/README.md#launch-a-new-instance) and [Tutorial 2](../tutorial2/README.md#spinning-up-a-compute-node-on-sebowaopenstack) only this time you'll be using the snapshot that you have just created as boot source.
+## Prerequisites
+- Running `com1` Virtual Server Instance with configured software
+- Access to IBM Cloud console
+- Basic understanding of snapshot functionality
 
-<p align="center"><img alt="OpenStack create instance from Snapshot." src="./resources/openstack_instance_snapshot.png" width=900 /></p>
+## Step-by-Step Instructions
 
-Pay careful attention to the hostname, network and other configuration settings that may be specific to and may conflict with your initial node. Once your two compute nodes have been successfully deployed, are accessible from the head node and added to your MPI `hosts` file, you can continue with running HPL across multiple nodes.
+### Step 1: Create Snapshot from com1
+
+1. **Navigate to Block Storage Snapshots**
+   - From the left menu bar, click "Infrastructure"
+   - Go to "Storage" → "Block Storage Snapshots"
+
+<p align="center"><img alt="IBM Cloud Block Storage Snapshots Navigation" src="./resources/ibm-block-storage-snapshots.png" width=900 /></p>
+
+2. **Create New Snapshot**
+   - Click "Create" button
+   - Configure the snapshot:
+     - **Snapshot name**: `com1-snapshot-<date>` or `compute-node-base`
+     - **Source volume**: Select the boot volume from your com1 instance
+     - **Resource group**: Default
+     - **Tags**: Optional tags for organization
+
+<p align="center"><img alt="Selecting Boot Volume Snapshot Type" src="./resources/selecting-boot-ibm-com1-snapshot-type.png" width=900 /></p>
+
+3. **Initiate Snapshot Creation**
+   - Review snapshot details
+   - Click "Create snapshot"
+   - Wait for snapshot creation to complete (status: "Available")
+
+<p align="center"><img alt="Confirm Snapshot in Snapshot List" src="./resources/confirm-snapshot-in-snapshot-list-of-newly-created-shots.png" width=900 /></p>
+
+### Step 2: Create com2 from Snapshot
+
+1. **Create Instance from Snapshot**
+   - From the snapshots list, find your `com1-snapshot`
+   - Click the action menu (⋮) and select "Create virtual server instance"
+
+2. **Configure com2 Instance**
+   - **Instance name**: `com2`
+   - **Resource group**: Default
+   - **Location**: Same region as com1 (eu-gb London)
+   - **Image**: Your snapshot should be pre-selected
+   - **Profile**: Same as com1 (bx2-2x8 - 2 vCPUs, 8GB RAM)
+
+<p align="center"><img alt="Configure com2 Using Snapshot" src="./resources/configure-com2-using-snapshot.png" width=900 /></p>
+
+3. **Network and Security**
+   - **VPC**: Default VPC (same as com1)
+   - **Subnet**: Same subnet as com1 for internal communication
+   - **SSH keys**: Select the same SSH key used for com1
+   - **No floating IP**: Keep compute nodes on private network only
+
+4. **Review and Create**
+   - Review the configuration summary
+   - Click "Create virtual server" to deploy com2
+
+### Step 3: Verify com2 Configuration
+
+1. **Monitor Deployment**
+   - Wait for com2 instance to become active (status: "Running")
+   - Verify no floating IP is assigned (security best practice)
+
+<p align="center"><img alt="com2 Created via Snapshot" src="./resources/com2-created-via-snapshot.png" width=900 /></p>
+
+Congratulations! You have successfully created a second compute node from snapshot on IBM Cloud.
 
 ## Running HPL Across Multiple Nodes
 
